@@ -40,21 +40,28 @@ At test time dropout stays on and BatchNorm uses the statistics of the current i
 
 Per-epoch validation used `model.eval()`, whose BatchNorm running statistics fluctuate during GAN training, so validation L1 varied strongly between epochs while the training loss decreased steadily.
 
-## Usage
+## Training on Kaggle
 
-```bash
-pip install -r requirements.txt   # install PyTorch with CUDA separately
-```
+1. Open the [dataset page](https://www.kaggle.com/datasets/ktaebum/anime-sketch-colorization-pair) and click *New Notebook* (the dataset is attached automatically).
+2. *File -> Import Notebook* and select `train/pix2pix_kaggle.ipynb`. The notebook already contains `train.py`.
+3. In the right panel set *Accelerator = GPU T4* and *Internet = On* (needed for `clean-fid` and the VGG-19 weights).
+4. Check the settings cell (`EPOCHS = 25`, `BATCH = 4`, `MAX_HOURS = 10.5`).
+5. *Save Version -> Save & Run All (Commit)*. You can close the browser; the run continues in the background (about 9.5 h on a T4: smoke test, benchmark, training, test evaluation).
+6. When the version has finished, open its *Output* tab.
 
-The trained weights (`generator.pth`, 218 MB) are not tracked in git; place the file at `weights/generator.pth` (or set `PIX2PIX_WEIGHTS`).
+Output files in `/kaggle/working`:
 
-Web app (opens http://127.0.0.1:7860). Upload a plain sketch or a dataset pair; the output is shown on the right and the sketch / ground truth / output under "Details":
+| File | Use |
+|---|---|
+| `generator.pth` | the only file the web app needs |
+| `results.zip` | metrics.json, split.json, losses.csv, val_log.csv, sample and loss-curve images |
+| `checkpoints/` | best.pt, last.pt and periodic checkpoints (only for resuming or re-evaluation) |
 
-```bash
-python app/app.py
-```
+Download `generator.pth` and put it at `weights/generator.pth`. Kaggle sometimes saves it as `generator.zip`, because a PyTorch checkpoint is a zip archive internally. In that case do not extract it; rename it to `generator.pth`. If the zip contains a `generator.pth` file instead, extract that file.
 
-Training on Kaggle: import `train/pix2pix_kaggle.ipynb` (GPU T4, Internet on, dataset attached) and run *Save & Run All*, or call the script directly:
+If a run hits the time limit, add its output as an input to a new notebook and set `RESUME = "/kaggle/input/<output>/checkpoints/last.pt"`.
+
+The script can also be called directly:
 
 ```bash
 python train/train.py --mode smoke      # end-to-end check on a small subset
@@ -65,11 +72,21 @@ python train/train.py --mode evaluate   # test metrics from a checkpoint
 
 `train/build_notebook.py` regenerates the notebook after editing `train.py`.
 
+## Running the web app
+
+```bash
+pip install -r requirements.txt   # install PyTorch with CUDA separately
+python app/app.py                 # uses weights/generator.pth, opens http://127.0.0.1:7860
+python app/app.py --model path/to/generator.pth --port 7861 --no_browser
+```
+
+`generator.pth` (218 MB) is not tracked in git. Upload a plain sketch or a dataset pair (left color, right sketch); the output is shown on the right, and the sketch / ground truth / output under "Details".
+
 Scripts (dataset pairs as input):
 
 ```bash
-python scripts/benchmark_latency.py --input <folder>
-python scripts/make_figure.py --input <folder>   # test-split images only
+python scripts/benchmark_latency.py --input <folder> [--weights path/to/generator.pth]
+python scripts/make_figure.py --input <folder> [--weights path/to/generator.pth]   # test-split images only
 ```
 
 ## Layout

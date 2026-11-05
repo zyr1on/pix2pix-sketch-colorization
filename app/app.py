@@ -1,9 +1,11 @@
 """Gradio web app for pix2pix sketch colorization (inference only).
 
-    python app/app.py            # opens http://127.0.0.1:7860
+    python app/app.py                              # weights/generator.pth, opens http://127.0.0.1:7860
+    python app/app.py --model path/to/generator.pth --port 7861 --no_browser
 
 Input: a plain line-art sketch, or a dataset pair (left = color, right = sketch).
 """
+import argparse
 import os
 import sys
 import time
@@ -18,7 +20,13 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 from model import Colorizer  # noqa: E402
 
-WEIGHTS = os.environ.get("PIX2PIX_WEIGHTS", os.path.join(ROOT, "weights", "generator.pth"))
+parser = argparse.ArgumentParser(description="pix2pix sketch colorization web app")
+parser.add_argument("--model", default=os.environ.get("PIX2PIX_WEIGHTS", os.path.join(ROOT, "weights", "generator.pth")),
+                    help="path to generator.pth (default: weights/generator.pth)")
+parser.add_argument("--port", type=int, default=7860)
+parser.add_argument("--no_browser", action="store_true", help="do not open a browser tab")
+ARGS, _ = parser.parse_known_args()
+WEIGHTS = ARGS.model
 AUTO, SKETCH, PAIR = "Auto detect", "Sketch only", "Pair (left color, right sketch)"
 
 # Gradio runs each request on a different thread and CUDA/cuDNN set up per-thread state on first use
@@ -41,7 +49,7 @@ def _infer(m, sketch):
 
 def load():
     if not os.path.exists(WEIGHTS):
-        sys.exit(f"ERROR: weights not found: {WEIGHTS}")
+        sys.exit(f"ERROR: weights not found: {WEIGHTS} (download generator.pth, see README, or pass --model)")
     t0 = time.perf_counter()
     m = GPU.submit(Colorizer, WEIGHTS).result()
     load_s = time.perf_counter() - t0
@@ -110,5 +118,5 @@ with gr.Blocks(title="pix2pix sketch colorization", fill_width=True) as demo:
     run.click(colorize, inputs=[inp, kind], outputs=[out, d_sketch, d_truth, d_out, info])
 
 if __name__ == "__main__":
-    demo.launch(server_name="127.0.0.1", server_port=7860, inbrowser="--no_browser" not in sys.argv,
+    demo.launch(server_name="127.0.0.1", server_port=ARGS.port, inbrowser=not ARGS.no_browser,
                 theme=gr.themes.Default(primary_hue="blue", neutral_hue="gray"), css=CSS, js=LIGHT_JS)
