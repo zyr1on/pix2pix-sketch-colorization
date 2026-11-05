@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.pth
+*.pt
+weights/*
+!weights/.gitkeep
+data/
+.gradio/
