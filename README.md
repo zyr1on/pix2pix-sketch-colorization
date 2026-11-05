@@ -87,12 +87,15 @@ At test time dropout stays on and BatchNorm uses the statistics of the current i
 
 Per-epoch validation used `model.eval()`, whose BatchNorm running statistics fluctuate during GAN training, so validation L1 varied strongly between epochs while the training loss decreased steadily.
 
-Scripts (dataset pairs as input):
+Scripts (folder of dataset pairs; results go to `results/latency.json` and `assets/samples_*.png`):
 
 ```bash
 python scripts/benchmark_latency.py --input <folder> [--weights path/to/generator.pth]
-python scripts/make_figure.py --input <folder> [--weights path/to/generator.pth]   # test-split images only
+python scripts/make_figure.py --input <folder> [--weights path/to/generator.pth] [--test_only 1]
 ```
+
+> [!NOTE]
+> The dataset's own `val/` folder is not the test set here: train/ and val/ were merged and re-split, so most `val/` images are in the training split. `make_figure.py` warns about images that are not in the test split of `results/split.json` (`--test_only 1` skips them). Use test-split images for reported figures.
 
 ## Layout
 

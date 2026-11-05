@@ -1,5 +1,6 @@
 """Sample figure: one row per image -> original sketch | ground truth | pix2pix.
-Inputs are dataset pairs (left = color, right = sketch). Only TEST-split images are used (results/split.json).
+Inputs are dataset pairs (left = color, right = sketch). Images outside the test split (results/split.json)
+are used but reported with a warning; pass --test_only 1 to skip them.
 
     python scripts/make_figure.py --input <folder_with_pairs>
 """
@@ -22,6 +23,9 @@ TITLES = ["Original sketch", "Ground truth", "pix2pix"]
 
 
 def split_of(split_path):
+    if not os.path.exists(split_path):
+        print(f"WARNING: {split_path} not found; split membership is not checked.")
+        return None
     s = json.load(open(split_path, encoding="utf-8"))
     names = {}
     for part in ("train", "val", "test"):
@@ -56,7 +60,7 @@ def main():
     p.add_argument("--weights", default=os.path.join(ROOT, "weights", "generator.pth"))
     p.add_argument("--split", default=os.path.join(ROOT, "results", "split.json"))
     p.add_argument("--out", default=os.path.join(ROOT, "assets", "samples.png"))
-    p.add_argument("--test_only", type=int, default=1)
+    p.add_argument("--test_only", type=int, default=0, help="1: skip images outside the test split")
     p.add_argument("--max", type=int, default=6, help="total rows")
     p.add_argument("--rows", type=int, default=3, help="rows per file (6 rows -> samples_a.png, samples_b.png)")
     p.add_argument("--dpi", type=int, default=200)
@@ -65,14 +69,19 @@ def main():
     files = sorted(f for e in ("png", "jpg", "jpeg") for f in glob.glob(os.path.join(a.input, f"*.{e}")))
     names, chosen = split_of(a.split), []
     for f in files:
-        parts = names.get(os.path.basename(f), set())
-        if a.test_only and parts != {"test"}:
-            print(f"skipped ({'/'.join(sorted(parts)) or 'not in split'}): {os.path.basename(f)}")
-            continue
+        if names is not None:
+            parts = names.get(os.path.basename(f), set())
+            if parts != {"test"}:
+                where = "/".join(sorted(parts)) or "not in split"
+                if a.test_only:
+                    print(f"skipped ({where}): {os.path.basename(f)}")
+                    continue
+                print(f"WARNING: {os.path.basename(f)} is not a test image ({where}); "
+                      "the model may have seen it during training.")
         chosen.append(f)
     chosen = chosen[: a.max]
     if not chosen:
-        sys.exit("ERROR: no test-split images found.")
+        sys.exit("ERROR: no images to plot.")
 
     m = Colorizer(a.weights)
     groups = [chosen[i:i + a.rows] for i in range(0, len(chosen), a.rows)]
