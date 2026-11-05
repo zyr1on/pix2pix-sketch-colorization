@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-05T15:17:01",
+  "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+  "torch": "2.6.0+cu124",
+  "cuda": "12.4",
+  "fp16": true,
+  "batch": 1,
+  "test_mode": "paper",
+  "resolution": "512x512",
+  "images": 16,
+  "repeat_per_image": 50,
+  "load_s": 0.339,
+  "first_call_s": 0.7142,
+  "end_to_end": {
+    "mean_ms": 8.05,
+    "std_ms": 0.35,
+    "median_ms": 7.93,
+    "p95_ms": 8.61,
+    "n": 800,
+    "scope": "preprocess + host-to-device + forward + postprocess"
+  },
+  "forward_only": {
+    "mean_ms": 7.2,
+    "std_ms": 0.16,
+    "median_ms": 7.16,
+    "p95_ms": 7.37,
+    "n": 800,
+    "scope": "generator forward (CUDA events)"
+  }
+}

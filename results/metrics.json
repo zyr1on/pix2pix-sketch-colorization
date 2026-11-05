@@ -1,0 +1,95 @@
+{
+  "model": "pix2pix (8-level U-Net + 70x70 PatchGAN)",
+  "date": "2026-11-05T02:11:33",
+  "split_evaluated": "test",
+  "checkpoint_epoch": 16,
+  "test_mode": "paper",
+  "test_mode_selection": {
+    "method": "lower validation L1",
+    "val_n": 500,
+    "results": {
+      "eval": {
+        "val_l1": 0.12259,
+        "val_ssim": 0.8602
+      },
+      "paper": {
+        "val_l1": 0.11748,
+        "val_ssim": 0.859
+      }
+    },
+    "selected": "paper"
+  },
+  "counts": {
+    "train": 14215,
+    "val": 1777,
+    "test": 1777
+  },
+  "ssim": {
+    "mean": 0.8542,
+    "std": 0.0588,
+    "n": 1777,
+    "range": "[0, 1]",
+    "color": "RGB"
+  },
+  "fid": {
+    "value": 29.2285,
+    "lib": "clean-fid",
+    "mode": "clean",
+    "n_fake": 1777,
+    "n_real": 1777
+  },
+  "edge_f1": {
+    "mean": 0.9617,
+    "std": 0.0209,
+    "n": 1777,
+    "precision": 0.9863,
+    "recall": 0.9388,
+    "canny": [
+      100,
+      200
+    ],
+    "tolerance_px": 2
+  },
+  "edge_f1_ground_truth": {
+    "mean": 0.9558,
+    "std": 0.0313,
+    "precision": 0.9781,
+    "recall": 0.9364
+  },
+  "l1": {
+    "mean": 0.1214,
+    "std": 0.058,
+    "n": 1777
+  },
+  "training": {
+    "batch": 4,
+    "epochs": 25,
+    "best_epoch": 16,
+    "select": "val_l1",
+    "best_val_l1": 0.1225872434079647,
+    "train_hours": 8.75,
+    "sessions": 1,
+    "nan_events": 0
+  },
+  "env": {
+    "platform": "Kaggle",
+    "gpu": "Tesla T4",
+    "torch": "2.11.0+cu130"
+  },
+  "config": {
+    "size": 512,
+    "sketch_channels": 1,
+    "lr": 0.0002,
+    "beta1": 0.5,
+    "beta2": 0.999,
+    "lambda_l1": 100.0,
+    "lambda_perc": 10.0,
+    "vgg_layer": "relu4_4",
+    "flip_p": 0.5,
+    "thicken_p": 0.3,
+    "thicken_kernels": "2,3",
+    "amp": 1,
+    "seed": 42,
+    "val_n": 500
+  }
+}
